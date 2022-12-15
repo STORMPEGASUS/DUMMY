@@ -17,9 +17,17 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: "^0.11.0"
 
+flutter_icons:
+    android: "launcher_icon"
+    ios: true
+    image_path: "assets/xylo.jpg"
+    min_sdk_android: 19  
+  
 flutter:
-
+  
+  
   uses-material-design: true
 
   assets:
