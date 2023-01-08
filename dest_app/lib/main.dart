@@ -23,6 +23,13 @@ class _StoryPageState extends State<StoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        centerTitle: true,
+        title: Text(
+          "DESTINI",
+        ),
+      ),
       body: SafeArea(
         child: Container(
           decoration: BoxDecoration(
