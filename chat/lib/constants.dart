@@ -19,6 +19,7 @@ const kMessageContainerDecoration = BoxDecoration(
 );
 
 const kInputDecoration = InputDecoration(
+  
   hintText: 'Enter a value',
   hintStyle: TextStyle(color: Colors.grey),
   contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
@@ -34,3 +35,30 @@ const kInputDecoration = InputDecoration(
     borderRadius: BorderRadius.all(Radius.circular(32.0)),
   ),
 );
+
+
+void ErrorDailog(e,BuildContext context) {
+    showDialog(
+      context: context,
+      builder: ((context) {
+        return Container(
+          child: AlertDialog(
+            title: const Text(
+              "WARNING!!",
+              style: TextStyle(color: Colors.red),
+            ),
+            content: Text(
+              e.toString(),
+            ),
+            actions: <Widget>[
+              TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('OK'))
+            ],
+          ),
+        );
+      }),
+    );
+  }
