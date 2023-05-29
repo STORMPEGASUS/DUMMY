@@ -1,6 +1,11 @@
 // ignore_for_file: file_names, prefer_const_constructors, prefer_const_literals_to_create_immutables
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../models/task_data.dart';
+import '../widgets/Tasks_list.dart';
+import 'Add_task.dart';
 
 class TaskScreen extends StatelessWidget {
   const TaskScreen({super.key});
@@ -11,7 +16,13 @@ class TaskScreen extends StatelessWidget {
       backgroundColor: Color.fromARGB(255, 90, 193, 252),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color.fromARGB(255, 90, 193, 252),
-        onPressed: null,
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            builder: (context) => AddTaskScreen(),
+          );
+          
+        },
         child: Icon(
           Icons.add,
           size: 35,
@@ -43,7 +54,7 @@ class TaskScreen extends StatelessWidget {
                   height: 30,
                 ),
                 Text(
-                  'Todoey',
+                  'Todo',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 50,
@@ -51,7 +62,7 @@ class TaskScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '12 tasks',
+                  '${Provider.of<TaskData>(context).taskcount} tasks',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -65,6 +76,7 @@ class TaskScreen extends StatelessWidget {
           ),
           Expanded(
             child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
@@ -72,6 +84,7 @@ class TaskScreen extends StatelessWidget {
                   topRight: Radius.circular(30),
                 ),
               ),
+              child: TaskList(),
             ),
           ),
         ],
