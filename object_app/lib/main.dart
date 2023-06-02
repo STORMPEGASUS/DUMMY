@@ -28,6 +28,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   late ImagePicker imagePicker;
   File? _image;
+  var image;
   dynamic objectDetector;
   _imgFromCamera() async {
     XFile? pickedFile = await imagePicker.pickImage(source: ImageSource.camera);
@@ -62,10 +63,11 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
+  late List<DetectedObject> objects;
+
   doObjectDetection() async {
     InputImage inputImage = InputImage.fromFile(_image!);
-    final List<DetectedObject> objects =
-        await objectDetector.processImage(inputImage);
+    objects = await objectDetector.processImage(inputImage);
 
     for (DetectedObject detectedObject in objects) {
       final rect = detectedObject.boundingBox;
@@ -77,6 +79,16 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     setState(() {
       _image;
+    });
+    drawRectanglesAroundObjects();
+  }
+
+  drawRectanglesAroundObjects() async {
+    image = await _image?.readAsBytes();
+    image = await decodeImageFromList(image);
+    setState(() {
+      image;
+      objects;
     });
   }
 
@@ -108,25 +120,57 @@ class _MyHomePageState extends State<MyHomePage> {
                         shadowColor: Colors.transparent,
                       ),
                       child: Container(
-                        margin: const EdgeInsets.only(top: 8),
-                        child: _image != null
-                            ? Image.file(
-                                _image!,
-                                width: 350,
-                                height: 350,
-                                fit: BoxFit.fill,
+                        width: 350,
+                        height: 350,
+                        margin: const EdgeInsets.only(
+                          top: 45,
+                        ),
+                        child: image != null
+                            ? Center(
+                                child: FittedBox(
+                                  child: SizedBox(
+                                    width: image.width.toDouble(),
+                                    height: image.width.toDouble(),
+                                    child: CustomPaint(
+                                      painter: ObjectPainter(
+                                          objectList: objects,
+                                          imageFile: image),
+                                    ),
+                                  ),
+                                ),
                               )
                             : Container(
+                                color: Colors.pinkAccent,
                                 width: 350,
                                 height: 350,
-                                color: Colors.pinkAccent,
                                 child: const Icon(
                                   Icons.camera_alt,
                                   color: Colors.black,
-                                  size: 100,
+                                  size: 53,
                                 ),
                               ),
                       ),
+
+                      // Container(
+                      //   margin: const EdgeInsets.only(top: 8),
+                      //   child: _image != null
+                      //       ? Image.file(
+                      //           _image!,
+                      //           width: 350,
+                      //           height: 350,
+                      //           fit: BoxFit.fill,
+                      //         )
+                      //       : Container(
+                      //           width: 350,
+                      //           height: 350,
+                      //           color: Colors.pinkAccent,
+                      //           child: const Icon(
+                      //             Icons.camera_alt,
+                      //             color: Colors.black,
+                      //             size: 100,
+                      //           ),
+                      //         ),
+                      // ),
                     ),
                   ),
                 ],
@@ -136,5 +180,49 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
     );
+  }
+}
+
+class ObjectPainter extends CustomPainter {
+  List<DetectedObject> objectList;
+  dynamic imageFile;
+  ObjectPainter({required this.objectList, @required this.imageFile});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (imageFile != null) {
+      canvas.drawImage(imageFile, Offset.zero, Paint());
+    }
+    Paint p = Paint();
+    p.color = Colors.red;
+    p.style = PaintingStyle.stroke;
+    p.strokeWidth = 10;
+
+    for (DetectedObject rectangle in objectList) {
+      canvas.drawRect(rectangle.boundingBox, p);
+      var list = rectangle.labels;
+      for (Label label in list) {
+        print("${label.text}   ${label.confidence.toStringAsFixed(2)}");
+        TextSpan span = TextSpan(
+            text: label.text,
+            style: const TextStyle(
+                fontSize: 80,
+                color: Color.fromARGB(255, 255, 255, 255),
+                fontWeight: FontWeight.w600));
+        TextPainter tp = TextPainter(
+            text: span,
+            textAlign: TextAlign.left,
+            textDirection: TextDirection.ltr);
+        tp.layout();
+        tp.paint(canvas,
+            Offset(rectangle.boundingBox.left, rectangle.boundingBox.top));
+        break;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return true;
   }
 }
