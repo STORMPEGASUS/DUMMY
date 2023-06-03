@@ -1,5 +1,8 @@
 import 'dart:io';
-
+import 'dart:io' as io;
+import 'package:flutter/services.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_object_detection/google_mlkit_object_detection.dart';
 import 'package:image_picker/image_picker.dart';
@@ -52,10 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     imagePicker = ImagePicker();
 
-    const mode = DetectionMode.single;
-    final options = ObjectDetectorOptions(
-        mode: mode, classifyObjects: true, multipleObjects: true);
-    objectDetector = ObjectDetector(options: options);
+    createObjectDetector();
   }
 
   @override
@@ -64,6 +64,33 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   late List<DetectedObject> objects;
+
+  Future<String> _getModel(String assetPath) async {
+    if (io.Platform.isAndroid) {
+      return 'flutter_assets/$assetPath';
+    }
+    final path = '${(await getApplicationSupportDirectory()).path}/$assetPath';
+    await io.Directory(dirname(path)).create(recursive: true);
+    final file = io.File(path);
+    if (!await file.exists()) {
+      final byteData = await rootBundle.load(assetPath);
+      await file.writeAsBytes(byteData.buffer
+          .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+    }
+    return file.path;
+  }
+
+// new object detector function
+  createObjectDetector() async {
+    final modelPath = await _getModel('assets/ml/efficientnet.tflite');
+    final options = LocalObjectDetectorOptions(
+      modelPath: modelPath,
+      classifyObjects: true,
+      multipleObjects: true,
+      mode: DetectionMode.single,
+    );
+    objectDetector = ObjectDetector(options: options);
+  }
 
   doObjectDetection() async {
     InputImage inputImage = InputImage.fromFile(_image!);
@@ -196,7 +223,7 @@ class ObjectPainter extends CustomPainter {
     Paint p = Paint();
     p.color = Colors.red;
     p.style = PaintingStyle.stroke;
-    p.strokeWidth = 10;
+    p.strokeWidth = 5;
 
     for (DetectedObject rectangle in objectList) {
       canvas.drawRect(rectangle.boundingBox, p);
@@ -206,7 +233,7 @@ class ObjectPainter extends CustomPainter {
         TextSpan span = TextSpan(
             text: label.text,
             style: const TextStyle(
-                fontSize: 80,
+                fontSize: 50,
                 color: Color.fromARGB(255, 255, 255, 255),
                 fontWeight: FontWeight.w600));
         TextPainter tp = TextPainter(
